@@ -1,0 +1,25 @@
+{
+	"name" : "mipotech/yii2-pulseem",
+	"description" : "A collection of wrapper functions for using the Pulseem API via Yii2",
+	"type" : "yii2-extension",
+	"keywords" : [
+		"yii2",
+		"extension"
+	],
+	"license" : "MIT",
+	"authors" : [{
+			"name" : "Mipo Technologies Ltd.",
+			"email" : "chaim@mipo.co.il"
+		}
+	],
+	"require" : {
+        "ext-soap": "*",
+        "php": ">=5.4.0",
+        "yiisoft/yii2" : "*"
+	},
+	"autoload" : {
+		"psr-4" : {
+			"mipotech\\pulseem\\" : ""
+		}
+	}
+}
