@@ -34,9 +34,9 @@ class PulseemSdk extends Component
         }
 
         if (empty($pulseemConfig['username'])) {
-            throw new InvalidConfigException("No Pulseem username found in Pulseem config array");
+            throw new InvalidConfigException("No Pulseem username found in Pulseem config array in config/params.php");
         } elseif (empty($pulseemConfig['password'])) {
-            throw new InvalidConfigException("No Pulseem username found in Pulseem config array");
+            throw new InvalidConfigException("No Pulseem password found in Pulseem config array in config/params.php");
         }
 
         $this->endpoint = $pulseemConfig['endpoint'];
@@ -48,7 +48,7 @@ class PulseemSdk extends Component
     }
 
     /**
-     * Send a Pulseem group email
+     * Send a Pulseem group email with unique subject, body, and reference for each message
      *
      * @param array $params
      * @param string $bodyTemplate The view file to use as the email body
@@ -56,27 +56,17 @@ class PulseemSdk extends Component
      * @throws yii\base\InvalidConfigException
      * @return int The number of emails sent, or 0 in case of an error
      */
-    public function sendGroupEmail(array $params, string $bodyTemplate = '', array $bodyParams = []): int
+    public function sendGroupEmail(array $params): int
     {
         $res = false;
 
         // Basic config asserts
         if (empty($params['toEmails'])) {
             throw new InvalidConfigException("\$params[toEmails] must be set");
-        } elseif (empty($params['toNames'])) {
-            throw new InvalidConfigException("\$params[toNames] must be set");
-        } elseif (empty($params['subject'])) {
-            throw new InvalidConfigException("\$params[subject] must be set");
-        }
-
-        // Get the body of the message
-        if (!empty($bodyTemplate)) {
-            $htmlBody = Yii::$app->controller->renderPartial($bodyTemplate, $bodyParams, true);
-        } else {
-            $htmlBody = $params['htmlBody'];
-        }
-        if (empty($params['htmlBody'])) {
-            throw new InvalidConfigException("\$params[htmlBody] must be set is \$bodyTemplate is not passed");
+        } elseif (empty($params['subjects'])) {
+            throw new InvalidConfigException("\$params[subjects] must be set");
+        } elseif (empty($params['htmlBodies'])) {
+            throw new InvalidConfigException("\$params[htmlBodies] must be set");
         }
 
         $fromEmail = $params['fromEmail'] ?: $this->fromEmail;
@@ -85,20 +75,31 @@ class PulseemSdk extends Component
             throw new InvalidConfigException("fromEmail and fromName not set neither in config/params.php or in \$params");
         }
 
+        // Inject empty external refs for each message if non specified
+        $externalRefs = $params['externalRefs'];
+        if (!empty($params['externalRefs'])) {
+            $externalRefs = $params['externalRefs'];
+        } else {
+            $externalRefs = [];
+            for ($i = 0; $i < count($params['toEmails']); $i++) {
+                $externalRefs[] = '';
+            }
+        }
+
         $context = [
             'toEmails' => $params['toEmails'],
             'toNames' => $params['toNames'],
             'fromEmail' => $fromEmail,
             'fromName' => $fromName,
-            'subject' => $params['subject'],
-            'HTML' => $htmlBody,
+            'subject' => $params['subjects'],
+            'HTML' => $params['htmlBodies'],
             'languageCode' => $params['languageCode'] ?: 0,
             'userID' => $this->username,
             'password' => $this->password,
-            'externalRef' => $params['externalRef'],
+            'externalRef' => $externalRefs,
         ];
 
-        $soap = new SoapClient($this->endpointUrl, array("connection_timeout" => 1000));
+        $soap = new SoapClient($this->endpointUrl, ["connection_timeout" => 1000]);
         $response = $soap->SendEmailsToGroup($context);
         $emailresponse = $response->SendEmailsToGroupResult;
         if (strtolower($emailresponse) == 'success') {
@@ -122,6 +123,8 @@ class PulseemSdk extends Component
 
         if (empty($params['toEmails'])) {
             throw new InvalidConfigException("\$params[toEmails] must be set");
+        } elseif (empty($params['toNames'])) {
+            throw new InvalidConfigException("\$params[toNames] must be set");
         }
 
         if (!empty($bodyTemplate)) {
@@ -139,17 +142,28 @@ class PulseemSdk extends Component
             throw new InvalidConfigException("fromEmail and fromName not set neither in config/params.php or in \$params");
         }
 
+        // Inject empty external refs for each message if non specified
+        $externalRefs = $params['externalRefs'];
+        if (!empty($params['externalRefs'])) {
+            $externalRefs = $params['externalRefs'];
+        } else {
+            $externalRefs = [];
+            for ($i = 0; $i < count($params['toEmails']); $i++) {
+                $externalRefs[] = '';
+            }
+        }
+
         $context = [
             'toEmails' => $params['toEmails'],
             'toNames' => $params['toNames'],
             'fromEmail' => $fromEmail,
             'fromName' => $fromName,
             'subject' => $params['subject'],
-            'HTML' => $html_body,
+            'HTML' => $htmlBody,
             'languageCode' => $params['languageCode'] ?: 0,
             'userID' => $this->username,
             'password' => $this->password,
-            'externalRef' => $params['externalRef'],
+            'externalRef' => $externalRefs,
         ];
 
         $soap = new SoapClient($this->endpointUrl, ["connection_timeout" => 1000]);

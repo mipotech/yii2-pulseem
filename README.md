@@ -92,9 +92,35 @@ $bodyParams = [
 $res = $pulseem->sendSingleEmail($params, $bodyTemplate, $bodyParams);
 ```
 
-### Sending a group email
+### Sending a group email with unique content for each message
 
-Group emails support the same two options of either explicitly specifying the htmlBody or
+This type of group email mandates that an array of `htmlBodies` be passed as part of `$params`.
+
+```php
+$params = [
+    'htmlBodies' => [
+        '<p>Body here 1</p>',
+        '<p>Body here 2</p>',
+    ],
+    'subjects' => [
+        'Testing 1',
+        'Testing 2',
+    ],
+    'toEmails' => [
+        'test1@test.com',
+        'test2@test.com',
+    ],
+    'toNames' => [
+        'Test User 1',
+        'Test User 2',
+    ],
+];
+$res = $pulseem->sendGroupEmail($params);
+```
+
+### Sending a group email with identical content for each messgae
+
+This type of group emails support the same two options of either explicitly specifying the htmlBody or
 using a Yii2 view.
 
 ```php
@@ -102,11 +128,12 @@ $params = [
     'htmlBody' => '<p>Body here</p>',
     'subject' => 'Testing',
     'toEmails' => [
-        'test@test.com',
+        'test1@test.com',
         'test2@test.com',
     ],
+    'toNames' => ['Test 1', 'Test 2'],
 ];
-$res = $pulseem->sendSingleEmail($params);
+$res = $pulseem->sendGroupSameEmail($params);
 ```
 
 ### Sending a single SMS
