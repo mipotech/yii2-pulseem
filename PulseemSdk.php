@@ -262,7 +262,7 @@ class PulseemSdk extends Component
             'delayDeliveryMinutes' => $extraParams['delayDeliveryMinutes'] ?: 0,
             'userID' => $this->username,
             'password' => $this->password,
-            'reference' => $params['externalRef'],
+            'reference' => $extraParams['externalRef'],
         ];
 
         $soap = new SoapClient($this->endpointUrl, ["connection_timeout" => 1000]);
